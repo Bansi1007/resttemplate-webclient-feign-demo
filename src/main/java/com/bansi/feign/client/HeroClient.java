@@ -18,8 +18,8 @@ public interface HeroClient {
     List<Hero> getHeroByName(@PathVariable String name);
 
 
-//    @PatchMapping ("/heroes/{id}/toggle")
-//    Hero toggleHero(@PathVariable("id") UUID id, @RequestBody String body);
+    @PatchMapping ("/heroes/{id}/toggle")
+    Hero toggleHero(@PathVariable("id") UUID id, @RequestBody String body);
 
     @DeleteMapping("/heroes/{id}")
     void deleteHero(@PathVariable UUID id);

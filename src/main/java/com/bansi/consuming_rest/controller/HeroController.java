@@ -5,6 +5,7 @@ import com.bansi.consuming_rest.model.HeroRequest;
 import com.bansi.consuming_rest.service.HeroServiceClient;
 import com.bansi.feign.client.HeroClient;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,12 +33,9 @@ public class HeroController {
         }
         return null;
     }
-
     @PutMapping("/heroes/{id}")
     public Hero updateHero(@PathVariable UUID id, @RequestBody HeroRequest heroRequest) {
-        Hero hero = new Hero(heroRequest);
-        heroServiceClient.updateHero(id, heroRequest);
-        return hero;
+        return heroServiceClient.updateHero(id, heroRequest);
     }
 
     @DeleteMapping("/heroes")
@@ -50,12 +48,19 @@ public class HeroController {
         List<Hero> inactiveheroes = heroServiceClient.getBenchedHeroes();
         return inactiveheroes;
     }
-    //Patch with rest template
+    //Patch with rest template - working
 //    @PatchMapping("/heroes/{id}/toggle")
 //    public Hero toggleHero(@PathVariable UUID id){
 //        Hero hero = heroServiceClient.toggleHero(id);
 //        return hero;
 //    }
+
+    //Patch with feign client
+    @PatchMapping("hero/{id}/toggle")
+    public Hero toggleHero(@PathVariable UUID id){
+        Hero hero = heroClient.toggleHero(id,"");
+            return hero;
+    }
 
     @GetMapping("hero/{id}")
     public Hero getHeroById(@PathVariable UUID id) {
@@ -68,12 +73,6 @@ public class HeroController {
         List<Hero> heroByName = heroClient.getHeroByName(name);
         return heroByName;
     }
-    //Patch with feign client
-//    @PatchMapping("hero/{id}/toggle")
-//    public Hero toggleHero(@PathVariable UUID id){
-//        Hero hero = heroClient.toggleHero(id,"");
-//            return hero;
-//    }
 
 
     @DeleteMapping("heroes/{id}")
@@ -109,6 +108,36 @@ public class HeroController {
     public List<Hero> getLevelRangeHeroes(@RequestParam("min") int min, @RequestParam("max") int max) {
         List<Hero> heroesInGivenRange = heroClient.getLevelRangeHeroes(min, max);
         return heroesInGivenRange;
-
     }
+
+    @GetMapping("/heroes/count")
+    public Mono<String> getHeroesCount() {
+        Mono<String> count = heroServiceClient.getHeroesCount();
+        return count;
+    }
+
+    @GetMapping("heroes/average-level")
+    public double getAverageLevelHeroes(){
+        double avg = heroServiceClient.getAverageLevelHeroes();
+        return avg;
+    }
+
+    @PostMapping("heroes/bulk")
+    public Mono<List<Hero>> bulkHeroes(@RequestBody List<HeroRequest> heroes) {
+        Mono<List<Hero>> bulklist = heroServiceClient.bulkHeroes(heroes);
+        return bulklist;
+    }
+
+    @GetMapping("heroes/names")
+    public Mono<List<String>> getHeroClient() {
+        Mono<List<String>> namelist = heroServiceClient.getHeroesNames();
+        return namelist;
+    }
+
+    @PutMapping("heroes/{id}/rename")
+    public Mono<Hero> updateName(@PathVariable UUID id, @RequestParam String name) {
+        Mono<Hero>updatedHero = heroServiceClient.updateName(id,name);
+        return updatedHero;
+    }
+
 }

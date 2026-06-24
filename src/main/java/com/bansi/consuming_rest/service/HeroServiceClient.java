@@ -4,23 +4,31 @@ import com.bansi.consuming_rest.model.Hero;
 import com.bansi.consuming_rest.model.HeroRequest;
 import com.bansi.feign.client.HeroClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class HeroServiceClient {
-    private final String apiUrl = "http://localhost:8080";
-
-    private final RestTemplate restTemplate;
-
-    @Value(apiUrl)
+    @Value("${superhero.api.base-url}")
     private String baseUrl;
 
-    public HeroServiceClient(RestTemplate restTemplate) {
+    private final RestTemplate restTemplate;
+    private final WebClient webClient;
+
+
+    public HeroServiceClient(RestTemplate restTemplate, WebClient webClient) {
         this.restTemplate = restTemplate;
+        this.webClient = webClient;
     }
     //1
     public void createHero(HeroRequest request) {
@@ -36,12 +44,16 @@ public class HeroServiceClient {
     }
 
     //3
-    public void updateHero(UUID id, HeroRequest heroRequest) {
+    public Hero updateHero(UUID id, HeroRequest heroRequest) {
         String url = baseUrl + "/heroes/" + id;
         Hero hero = new Hero(heroRequest);
-        hero.setPower(heroRequest.getPower());
-        hero.setLevel(heroRequest.getLevel());
-        restTemplate.put(url, hero);
+        ResponseEntity<Hero> response = restTemplate.exchange(
+                url,
+                HttpMethod.PUT,
+                new HttpEntity<>(hero),
+                Hero.class
+        );
+        return response.getBody();
     }
 
     public void deleteHeroes() {
@@ -54,11 +66,55 @@ public class HeroServiceClient {
         List<Hero> heroes = restTemplate.getForObject(url, List.class);
         return heroes;
     }
-//    public Hero toggleHero(UUID id) {
-//        String url = baseUrl + "/heroes/" + id+"/toggle";
-//        Hero hero = restTemplate.patchForObject(url,"", Hero.class);
-//        return hero;
-//    }
+    public Hero toggleHero(UUID id) {
+        String url = baseUrl + "/heroes/" + id+"/toggle";
+        Hero hero = restTemplate.patchForObject(url,"", Hero.class);
+        return hero;
+    }
+
+    //web client
+    public Mono<String> getHeroesCount() {
+        return webClient.get()
+                .uri("/heroes/count")
+                .retrieve()
+                .bodyToMono(String.class);
+    }
 
 
+    public double getAverageLevelHeroes() {
+        return webClient.get()
+                .uri("heroes/average-level")
+                .retrieve()
+                .bodyToMono(Double.class)
+                .block();
+    }
+
+    public Mono<List<Hero>> bulkHeroes(@RequestBody List<HeroRequest> heroes) {
+        return webClient.post()
+                .uri("heroes/bulk")
+                .bodyValue(heroes)
+                .retrieve()
+                .bodyToFlux(Hero.class)
+                .collectList();
+    }
+
+    public Mono<List<String>> getHeroesNames() {
+        return webClient.get()
+                .uri("heroes/names")
+                .retrieve()
+                .bodyToMono(String[].class)
+                .map(Arrays::asList);
+    }
+
+
+    public Mono<Hero> updateName(UUID id, String name) {
+        return webClient.put()
+                .uri(uriBuilder -> uriBuilder
+                        .path("heroes/{id}/rename")
+                        .queryParam("name", name)
+                        .build(id)) // Binds 'id' to the path variable
+                .retrieve()
+                .bodyToMono(Hero.class);
+
+    }
 }
