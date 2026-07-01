@@ -4,9 +4,14 @@ import com.bansi.consuming_rest.model.Hero;
 import com.bansi.consuming_rest.model.HeroRequest;
 import com.bansi.consuming_rest.service.HeroServiceClient;
 import com.bansi.feign.client.HeroClient;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import javax.naming.ServiceUnavailableException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,18 +26,34 @@ public class HeroController {
         this.heroClient = heroClient;
     }
 
+
     @PostMapping("/heroes")
     public void create(@RequestBody HeroRequest request) {
         heroServiceClient.createHero(request);
     }
 
+
+
     @GetMapping("/activeHeroes")
-    public List<Hero> getActiveHeroes() {
-        if (!heroServiceClient.getActiveHeroes().isEmpty()) {
-            return heroServiceClient.getActiveHeroes();
+    public ResponseEntity<List<Hero>> getActiveHeroes() {
+        List<Hero> heroes = heroServiceClient.getActiveHeroes();
+
+        if (heroes.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(Collections.emptyList());
         }
-        return null;
+        return ResponseEntity.ok(heroes);
     }
+
+
+//    @GetMapping("/activeHeroes")
+//    public List<Hero> getActiveHeroes(){
+//        if (!heroServiceClient.getActiveHeroes().isEmpty()) {
+//            return heroServiceClient.getActiveHeroes();
+//        }
+//        return null;
+//    }
     @PutMapping("/heroes/{id}")
     public Hero updateHero(@PathVariable UUID id, @RequestBody HeroRequest heroRequest) {
         return heroServiceClient.updateHero(id, heroRequest);
