@@ -1,31 +1,35 @@
 package com.bansi.consuming_rest.service;
 
+import com.bansi.consuming_rest.auth.SuperheroTokenProvider;
 import com.bansi.consuming_rest.model.Hero;
 import com.bansi.consuming_rest.model.HeroRequest;
-import com.bansi.feign.client.HeroClient;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.retry.annotation.Retry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-
-import javax.naming.ServiceUnavailableException;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class HeroServiceClient {
     @Value("${superhero.api.base-url}")
     private String baseUrl;
+
+    @Autowired
+    private SuperheroTokenProvider tokenProvider;
+
+
 
     private final RestTemplate restTemplate;
     private final WebClient webClient;
@@ -45,29 +49,11 @@ public class HeroServiceClient {
         restTemplate.postForObject(url, request, HeroRequest.class);
     }
 
-//    @Retry(name = "HeroServiceClient", fallbackMethod = "fallback")
-//    public String CallService() {
-//       attempt++;
-//        System.out.println("Retry "+ attempt+ ": failed");
-//        if (attempt <= 3) {
-//           throw new RuntimeException("Retry  " + attempt+": failed");
-//       }
-//        return null;
-//    }
-//    public String fallback(Throwable ex) {
-//        String message = "3 retries failed. Sending service unavailable " +
-//                "to consumer. Please don't send any more requests";
-//        System.out.println(message);
-//        attempt = 0;
-//        return message;
-//    }
-
 
     @Retry(name = "HeroServiceClient" , fallbackMethod = "fallback")
     public List<Hero> getActiveHeroes() {
         attempt++;
         Instant now = Instant.now();
-      //  System.out.println(now);
         System.out.println("attempt "+attempt+ "----"+now );
         String url = baseUrl + "/heroes/active";
             List<Hero> heroes = restTemplate.getForObject(url, List.class);
@@ -82,8 +68,6 @@ public class HeroServiceClient {
         attempt = 0;
         return Collections.emptyList();
     }
-
-
 
 
    // For loop
@@ -143,10 +127,23 @@ public class HeroServiceClient {
         restTemplate.delete(url);
     }
 
-    public List<Hero> getBenchedHeroes() {
+
+   // @RateLimiter(name = "HeroServiceClient",fallbackMethod = "rateLimitFallback")
+   public List<Hero> getBenchedHeroes() {
+       try {
+           return callSuperhero();
+       } catch (HttpClientErrorException  e) {
+           tokenProvider.forceRefresh();
+           return callSuperhero();
+       }
+   }
+
+    private List<Hero> callSuperhero() {
         String url = baseUrl + "/heroes/benched";
-        List<Hero> heroes = restTemplate.getForObject(url, List.class);
-        return heroes;
+        System.out.println("RestTemplate interceptors attached: " + restTemplate.getInterceptors().size());
+
+        Hero[] heroes = restTemplate.getForObject(url, Hero[].class);
+        return Arrays.asList(heroes);
     }
 
     public Hero toggleHero(UUID id) {

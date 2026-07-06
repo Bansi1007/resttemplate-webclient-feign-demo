@@ -6,14 +6,15 @@ import com.bansi.consuming_rest.service.HeroServiceClient;
 import com.bansi.feign.client.HeroClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import reactor.core.publisher.Mono;
 
 import javax.naming.ServiceUnavailableException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/client")
@@ -47,7 +48,7 @@ public class HeroController {
     }
 
 
-//    @GetMapping("/activeHeroes")
+    //    @GetMapping("/activeHeroes")
 //    public List<Hero> getActiveHeroes(){
 //        if (!heroServiceClient.getActiveHeroes().isEmpty()) {
 //            return heroServiceClient.getActiveHeroes();

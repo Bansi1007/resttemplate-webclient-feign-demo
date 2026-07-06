@@ -50,7 +50,13 @@
 			<version>4.0.0-M2</version>
 			<scope>compile</scope>
 		</dependency>
-
+		<!-- Source: https://mvnrepository.com/artifact/org.springframework.retry/spring-retry -->
+		<dependency>
+			<groupId>org.springframework.retry</groupId>
+			<artifactId>spring-retry</artifactId>
+			<version>2.0.13</version>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
 			<groupId>io.github.resilience4j</groupId>
 			<artifactId>resilience4j-spring-boot3</artifactId>
@@ -94,6 +100,14 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>21</source>
+					<target>21</target>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
