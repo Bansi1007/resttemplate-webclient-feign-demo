@@ -1,0 +1,10 @@
+[http-nio-8081-exec-3] INFO  c.b.c.aspect.LoggingAspect traceId=18bc7257-536d-445d-a8c2-69e563f46ac5 - Exiting method HeroServiceClient.fallback(..). time taken to execute 1 ms at Mon, Jul 13, 05:02:53
+                p.m.
+[http-nio-8081-exec-3] INFO  c.b.c.controller.HeroController traceId=18bc7257-536d-445d-a8c2-69e563f46ac5 - no active heroes found at Mon, Jul 13, 05:02:53
+                p.m.
+[http-nio-8081-exec-3] INFO  c.b.c.aspect.LoggingAspect traceId=18bc7257-536d-445d-a8c2-69e563f46ac5 - Exiting method HeroController.getActiveHeroes(). time taken to execute 46 ms at Mon, Jul 13, 05:02:53
+                p.m.
+[SpringApplicationShutdownHook] INFO  o.s.boot.tomcat.GracefulShutdown traceId= - Commencing graceful shutdown. Waiting for active requests to complete at Mon, Jul 13, 05:03:42
+                p.m.
+[tomcat-shutdown] INFO  o.s.boot.tomcat.GracefulShutdown traceId= - Graceful shutdown complete at Mon, Jul 13, 05:03:42
+                p.m.
