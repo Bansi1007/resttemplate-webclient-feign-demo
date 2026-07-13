@@ -4,6 +4,9 @@ import com.bansi.consuming_rest.model.Hero;
 import com.bansi.consuming_rest.model.HeroRequest;
 import com.bansi.consuming_rest.service.HeroServiceClient;
 import com.bansi.feign.client.HeroClient;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -22,10 +25,13 @@ public class HeroController {
     private final HeroServiceClient heroServiceClient;
     private final HeroClient heroClient;
 
+
+
     public HeroController(HeroServiceClient heroServiceClient, HeroClient heroClient) {
         this.heroServiceClient = heroServiceClient;
         this.heroClient = heroClient;
     }
+
 
 
     @PostMapping("/heroes")

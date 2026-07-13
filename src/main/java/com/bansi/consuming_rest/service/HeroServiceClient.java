@@ -3,9 +3,11 @@ package com.bansi.consuming_rest.service;
 import com.bansi.consuming_rest.auth.SuperheroTokenProvider;
 import com.bansi.consuming_rest.model.Hero;
 import com.bansi.consuming_rest.model.HeroRequest;
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.retry.annotation.Retry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -14,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -43,14 +44,22 @@ public class HeroServiceClient {
         this.retryRegistry = retryRegistry;
     }
 
+
     //1
+    @CircuitBreaker(name = "HeroServiceClient", fallbackMethod = "createFallback")
     public void createHero(HeroRequest request) {
         String url = baseUrl + "/heroes";
         restTemplate.postForObject(url, request, HeroRequest.class);
+
+    }
+
+    private void createFallback(HeroRequest request, Throwable t) {
+        System.out.println("createHero unavailable: " + t.getMessage());
     }
 
 
     @Retry(name = "HeroServiceClient" , fallbackMethod = "fallback")
+    @CircuitBreaker(name = "HeroServiceClient")
     public List<Hero> getActiveHeroes() {
         attempt++;
         Instant now = Instant.now();
@@ -110,6 +119,8 @@ public class HeroServiceClient {
 
 
     //3
+
+    @CircuitBreaker(name = "HeroServiceClient", fallbackMethod = "updateFallback")
     public Hero updateHero(UUID id, HeroRequest heroRequest) {
         String url = baseUrl + "/heroes/" + id;
         Hero hero = new Hero(heroRequest);
@@ -122,13 +133,24 @@ public class HeroServiceClient {
         return response.getBody();
     }
 
+    private Hero updateFallback(UUID id, HeroRequest heroRequest, Throwable t) {
+        Hero hero = new Hero();
+        hero.setId(id);
+        return hero;
+    }
+
+    @CircuitBreaker(name = "HeroServiceClient", fallbackMethod = "deleteFallback")
     public void deleteHeroes() {
         String url = baseUrl + "/heroes";
         restTemplate.delete(url);
     }
+    private void deleteFallback(Throwable t) {
+        System.out.println("deleteHeroes unavailable: " + t.getMessage());
+    }
 
 
    // @RateLimiter(name = "HeroServiceClient",fallbackMethod = "rateLimitFallback")
+    @CircuitBreaker(name = "HeroServiceClient", fallbackMethod = "benchedFallback")
    public List<Hero> getBenchedHeroes() {
        try {
            return callSuperhero();
@@ -137,22 +159,34 @@ public class HeroServiceClient {
            return callSuperhero();
        }
    }
+    private List<Hero> benchedFallback(Throwable t) {
+        return Collections.emptyList();
+    }
+
 
     private List<Hero> callSuperhero() {
-        String url = baseUrl + "/heroes/benched";
+            String url = baseUrl + "/heroes/benched";
         System.out.println("RestTemplate interceptors attached: " + restTemplate.getInterceptors().size());
 
         Hero[] heroes = restTemplate.getForObject(url, Hero[].class);
         return Arrays.asList(heroes);
     }
 
+
+    @CircuitBreaker(name = "HeroServiceClient", fallbackMethod = "toggleFallback")
     public Hero toggleHero(UUID id) {
         String url = baseUrl + "/heroes/" + id + "/toggle";
         Hero hero = restTemplate.patchForObject(url, "", Hero.class);
         return hero;
     }
+    private Hero toggleFallback(UUID id, Throwable t) {
+        Hero hero = new Hero();
+        hero.setId(id);
+        return hero;
+    }
 
     //web client
+    @CircuitBreaker(name = "HeroServiceClient", fallbackMethod = "countFallback")
     public Mono<String> getHeroesCount() {
         return webClient.get()
                 .uri("/heroes/count")
@@ -160,7 +194,11 @@ public class HeroServiceClient {
                 .bodyToMono(String.class);
     }
 
+    private Mono<String> countFallback(Throwable t) {
+        return Mono.just("unavailable");
+    }
 
+    @CircuitBreaker(name = "HeroServiceClient", fallbackMethod = "avgFallback")
     public double getAverageLevelHeroes() {
         return webClient.get()
                 .uri("heroes/average-level")
@@ -168,7 +206,11 @@ public class HeroServiceClient {
                 .bodyToMono(Double.class)
                 .block();
     }
+    private double avgFallback(Throwable t) {
+        return 0.0;
+    }
 
+    @CircuitBreaker(name = "HeroServiceClient" , fallbackMethod = "bulkFallback")
     public Mono<List<Hero>> bulkHeroes(@RequestBody List<HeroRequest> heroes) {
         return webClient.post()
                 .uri("heroes/bulk")
@@ -177,7 +219,11 @@ public class HeroServiceClient {
                 .bodyToFlux(Hero.class)
                 .collectList();
     }
+    private Mono<List<Hero>> bulkFallback(List<HeroRequest> heroes, Throwable t) {
+        return Mono.just(List.of());
+    }
 
+    @CircuitBreaker(name = "HeroServiceClient", fallbackMethod = "namesFallback")
     public Mono<List<String>> getHeroesNames() {
         return webClient.get()
                 .uri("heroes/names")
@@ -185,8 +231,11 @@ public class HeroServiceClient {
                 .bodyToMono(String[].class)
                 .map(Arrays::asList);
     }
+    private Mono<List<String>> namesFallback(Throwable t) {
+        return Mono.just(List.of());
+    }
 
-
+    @CircuitBreaker(name = "HeroServiceClient", fallbackMethod = "renameFallback")
     public Mono<Hero> updateName(UUID id, String name) {
         return webClient.put()
                 .uri(uriBuilder -> uriBuilder
@@ -195,6 +244,10 @@ public class HeroServiceClient {
                         .build(id)) // Binds 'id' to the path variable
                 .retrieve()
                 .bodyToMono(Hero.class);
+    }
+
+    private Mono<Hero> renameFallback(UUID id, String name, Throwable t) {
+        return Mono.empty();
     }
 
 

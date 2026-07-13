@@ -2,13 +2,15 @@ package com.bansi.feign.client;
 
 import com.bansi.consuming_rest.model.Hero;
 import jakarta.websocket.server.PathParam;
+import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
-@FeignClient(name = "hero-service", url = "http://localhost:8080")
+@FeignClient(name = "hero-service", url = "http://localhost:8080" )
 public interface HeroClient {
 
     @GetMapping("/heroes/{id}")
@@ -38,4 +40,7 @@ public interface HeroClient {
 
     @GetMapping("heroes/level-range")
     List<Hero> getLevelRangeHeroes(@RequestParam("min") int min, @RequestParam("max") int max);
+
+
+
 }
