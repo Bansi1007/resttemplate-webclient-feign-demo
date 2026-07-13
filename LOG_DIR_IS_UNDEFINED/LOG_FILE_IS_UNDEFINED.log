@@ -1,0 +1,14 @@
+[main] INFO  c.b.c.ConsumingRestApplication - Starting ConsumingRestApplication using Java 26.0.1 with PID 28884 (Z:\Bansi Java\Projects\Consuming-Rest\consuming-rest\consuming-rest\target\classes started by Dishit Vasani in Z:\Bansi Java\Projects\Consuming-Rest\consuming-rest\consuming-rest) at Sun, Jul 12, 01:38:27 p.m.
+[main] INFO  c.b.c.ConsumingRestApplication - No active profile set, falling back to 1 default profile: "default" at Sun, Jul 12, 01:38:27 p.m.
+[main] INFO  o.s.cloud.context.scope.GenericScope - BeanFactory id=50f3c99f-a27b-3856-beee-1a2a109b260e at Sun, Jul 12, 01:38:28 p.m.
+[main] INFO  o.s.boot.tomcat.TomcatWebServer - Tomcat initialized with port 8081 (http) at Sun, Jul 12, 01:38:29 p.m.
+[main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"] at Sun, Jul 12, 01:38:29 p.m.
+[main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat] at Sun, Jul 12, 01:38:29 p.m.
+[main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/11.0.22] at Sun, Jul 12, 01:38:29 p.m.
+[main] INFO  o.s.b.w.c.s.WebApplicationContextInitializer - Root WebApplicationContext: initialization completed in 1358 ms at Sun, Jul 12, 01:38:29 p.m.
+[main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 3 endpoints beneath base path '/actuator' at Sun, Jul 12, 01:38:30 p.m.
+[main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"] at Sun, Jul 12, 01:38:30 p.m.
+[main] INFO  o.s.boot.tomcat.TomcatWebServer - Tomcat started on port 8081 (http) with context path '/' at Sun, Jul 12, 01:38:30 p.m.
+[main] INFO  c.b.c.ConsumingRestApplication - Started ConsumingRestApplication in 3.661 seconds (process running for 4.168) at Sun, Jul 12, 01:38:30 p.m.
+[SpringApplicationShutdownHook] INFO  o.s.boot.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete at Sun, Jul 12, 01:39:21 p.m.
+[tomcat-shutdown] INFO  o.s.boot.tomcat.GracefulShutdown - Graceful shutdown complete at Sun, Jul 12, 01:39:21 p.m.
