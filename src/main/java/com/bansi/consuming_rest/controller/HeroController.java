@@ -26,7 +26,6 @@ public class HeroController {
     private final HeroClient heroClient;
 
 
-
     public HeroController(HeroServiceClient heroServiceClient, HeroClient heroClient) {
         this.heroServiceClient = heroServiceClient;
         this.heroClient = heroClient;

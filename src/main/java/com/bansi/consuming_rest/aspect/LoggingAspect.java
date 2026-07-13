@@ -34,11 +34,20 @@ public class LoggingAspect {
         long start = System.currentTimeMillis();
 
         try {
-            return joinPoint.proceed();
-        } finally {
+            Object result = joinPoint.proceed();
             long duration = System.currentTimeMillis() - start;
-            log.info("Exiting method {}. time taken to execute..... {} ms......",
-                    methodName, duration);
+            log.info("Exiting method {}. time taken to execute {} ms", methodName, duration);
+            return result;
+        } catch (Exception ex) {
+            long duration = System.currentTimeMillis() - start;
+            // ERROR level + pass exception object so stack trace prints
+            log.error("Exception in method {} after {} ms: {}", methodName, duration, ex.getMessage(), ex);
+            throw ex;
         }
+//        finally {
+//            long duration = System.currentTimeMillis() - start;
+//            log.info("Exiting method {}. time taken to execute..... {} ms......",
+//                    methodName, duration);
+//        }
     }
 }

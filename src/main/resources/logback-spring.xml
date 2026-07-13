@@ -21,7 +21,9 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>[%thread] %-5level %logger{36} - %msg at %d{"EEE, MMM dd, hh:mm:ss a"}%n</pattern>
+            <pattern>[%thread] %-5level %logger{36} traceId=%X{traceabilityId} - %msg at %d{"EEE, MMM dd, hh:mm:ss
+                a"}%n
+            </pattern>
         </encoder>
     </appender>
 
